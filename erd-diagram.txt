@@ -1,0 +1,117 @@
+title Clinic Appointment & Diagnostics ERD
+colorMode pastel
+notation crows-foot
+styleMode watercolor
+typeface clean
+
+// PATIENTS
+Patients [color: Yellow] {
+  patient_id uuid pk
+  full_name varchar(100)
+  phone varchar(20)
+  email varchar(255)
+  gender enum['male','female','other']
+  date_of_birth date
+  address text
+  created_at timestamp
+}
+
+Patients.patient_id < Appointments.patient_id
+Patients.patient_id < Consultations.patient_id
+Patients.patient_id < Reports.patient_id
+Patients.patient_id < Payments.patient_id
+
+// DOCTORS
+Doctors [color: Blue] {
+  doctor_id uuid pk
+  full_name varchar(100)
+  specialization_id uuid fk
+  experience_years int
+  consultation_fee decimal(10,2)
+  created_at timestamp
+}
+
+Doctors.doctor_id < Appointments.doctor_id
+Doctors.doctor_id < Consultations.doctor_id
+
+// SPECIALIZATIONS
+Specializations [color: Purple] {
+  specialization_id uuid pk
+  name varchar(100)
+  description text
+}
+
+Specializations.specialization_id < Doctors.specialization_id
+
+// APPOINTMENTS
+Appointments [color: Green] {
+  appointment_id uuid pk
+  patient_id uuid fk
+  doctor_id uuid fk
+  appointment_date date
+  appointment_time time
+  status enum['scheduled','completed','cancelled','no_show']
+  reason text
+  created_at timestamp
+}
+
+Appointments.appointment_id < Consultations.appointment_id
+
+// CONSULTATIONS (VISITS)
+Consultations [color: Red] {
+  consultation_id uuid pk
+  appointment_id uuid fk
+  patient_id uuid fk
+  doctor_id uuid fk
+  consultation_date timestamp
+  symptoms text
+  diagnosis text
+  notes text
+  created_at timestamp
+}
+
+Consultations.consultation_id < Prescribed_Tests.consultation_id
+Consultations.consultation_id < Payments.consultation_id
+
+// TEST CATALOG (MASTER)
+Diagnostic_Tests [color: Purple] {
+  test_id uuid pk
+  test_name varchar(100)
+  description text
+  price decimal(10,2)
+}
+
+Diagnostic_Tests.test_id < Prescribed_Tests.test_id
+
+// PRESCRIBED TESTS
+Prescribed_Tests [color: Orange] {
+  prescribed_test_id uuid pk
+  consultation_id uuid fk
+  test_id uuid fk
+  status enum['prescribed','sample_collected','completed']
+  prescribed_at timestamp
+}
+
+Prescribed_Tests.prescribed_test_id < Reports.prescribed_test_id
+
+// REPORTS
+Reports [color: Grey] {
+  report_id uuid pk
+  prescribed_test_id uuid fk
+  patient_id uuid fk
+  result text
+  status enum['pending','ready','delivered']
+  generated_at timestamp
+}
+
+// PAYMENTS
+Payments [color: Cyan] {
+  payment_id uuid pk
+  patient_id uuid fk
+  consultation_id uuid fk
+  amount decimal(10,2)
+  payment_method enum['cash','card','upi','netbanking']
+  payment_status enum['pending','paid','failed','refunded']
+  transaction_ref varchar(255)
+  paid_at timestamp
+}
